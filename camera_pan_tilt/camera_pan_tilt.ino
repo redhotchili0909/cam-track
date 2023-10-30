@@ -3,9 +3,10 @@
 // initialize Servo info
 Servo horServo;
 const int horPin = 8;
-int hPos = hStart;
 int hStart = 50;
-int horMovement = 0;
+int hPos = hStart;
+String horMovement;
+int horMovementNum = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -16,9 +17,10 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     // check serial message from raspi to see which way to move
-    horMovement = Serial.parseInt();
+    horMovement = Serial.readStringUntil('\n');
     // change horMovement to some distance for servo to move
-    hPos = hPos + horMovement;
+    horMovementNum = horMovement.toInt();
+    hPos = hPos + horMovementNum;
   }
   Serial.println(horMovement);
   horServo.write(hPos);

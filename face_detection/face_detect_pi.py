@@ -68,12 +68,12 @@ def move_camera(input):
     # TODO: send this number to arduino over serial
     threshold = frame_width / 2
     move = input[0] - threshold
-    if input[0] > threshold:
-        print("move left")
-    elif input[0] < threshold and input[0] > 0:
-        print("move right")
-    elif input[0] == 0:
-        print("out of frame")
+    # if input[0] > threshold:
+    #     print("move left")
+    # elif input[0] < threshold and input[0] > 0:
+    #     print("move right")
+    # elif input[0] == 0:
+    #     print("out of frame")
     return move
 
 while True:
@@ -87,6 +87,7 @@ while True:
     )  # apply the function we created to the video frame
     center = center_normalize(center, frame_width, frame_height)
     move_command = str(move_camera(center))
+    move_command = move_command + "\n" 
     print(f"from pi: {move_command}")
     ser.write(move_command.encode('utf-8'))
     line = ser.readline().decode('utf-8').rstrip()
