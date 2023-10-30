@@ -17,8 +17,10 @@ void loop() {
   if (Serial.available() > 0) {
     // check serial message from raspi to see which way to move
     horMovement = Serial.parseInt();
+    // change horMovement to some distance for servo to move
     hPos = hPos + horMovement;
   }
+  Serial.println(horMovement);
   horServo.write(hPos);
 
 }

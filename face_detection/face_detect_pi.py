@@ -87,9 +87,12 @@ while True:
         array
     )  # apply the function we created to the video frame
     center = center_normalize(center, frame_width, frame_height)
-    move_command = move_camera(center)
-    print(move_command)
+    move_command = str(move_camera(center))
+    print(f"from pi: {move_command}")
     ser.write(move_command.encode('utf-8'))
+    line = ser.readline().decode('utf-8').rstrip()
+    print(f"from arduino: {line}")
+
     # cv2.imshow(
     #     "My Face Detection Project", array
     # )  # display the processed frame in a window named "My Face Detection Project"
