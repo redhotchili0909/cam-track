@@ -21,8 +21,8 @@ void loop() {
     // change horMovement to some distance for servo to move
     horMovementNum = horMovement.toInt();
     hPos = hPos + horMovementNum;
+    Serial.println(horMovement);
   }
-  Serial.println(horMovement);
   horServo.write(hPos);
 
 }
