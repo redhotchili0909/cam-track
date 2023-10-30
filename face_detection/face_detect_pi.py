@@ -10,6 +10,9 @@ picam2.start()
 frame_width = 1200
 frame_height = 800
 
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+ser.reset_input_buffer()
+
 def resize_frame(frame, width, height):
     return cv2.resize(frame, (width, height))
 
@@ -72,10 +75,6 @@ def move_camera(input):
     elif input[0] == 0:
         print("out of frame")
     return move
-
-if __name__ == '__main__':
-    ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-    ser.reset_input_buffer()
 
 while True:
     array = picam2.capture_array("main")
