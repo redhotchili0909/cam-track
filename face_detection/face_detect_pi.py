@@ -89,7 +89,7 @@ while True:
     center = center_normalize(center, frame_width, frame_height)
     move_command = move_camera(center)
     print(move_command)
-    if ser.in_waiting > 0:
+    ser.write(move_command.encode('utf-8'))
     # cv2.imshow(
     #     "My Face Detection Project", array
     # )  # display the processed frame in a window named "My Face Detection Project"
