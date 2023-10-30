@@ -1,23 +1,20 @@
 # pylint: disable-all
 import cv2
 import numpy as np
+import serial
+from picamera2 import Picamera2, Preview
+face_classifier = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+picam2 = Picamera2()
+picam2.start()
 
-face_classifier = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-)
-video_capture = cv2.VideoCapture(0)
-
-# Set Window Size
 frame_width = 1200
 frame_height = 800
-
 
 def resize_frame(frame, width, height):
     return cv2.resize(frame, (width, height))
 
-
 def detect_bounding_box(vid):
-    gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(vid, cv2.COLOR_RGB2GRAY)
     faces = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
     closest_face = 0
     max_box_area = 0
@@ -27,7 +24,7 @@ def detect_bounding_box(vid):
         for idx, face in enumerate(faces):
             cur_box_area = face[2] * face[3]
             # find biggest box area when camera picks up multiple faces
-            # to only track the closest face
+            # to only track the closest face~
             if cur_box_area > max_box_area:
                 max_box_area = cur_box_area
                 max_face_idx = idx
@@ -47,12 +44,15 @@ def detect_bounding_box(vid):
             4,
         )
     else:
+
         # if box is out of bounds, just set everything to 0s so it doesn't crash lol
         closest_face = np.ndarray([0, 0, 0, 0])
         rectangle_center = (0, 0)
     return closest_face, rectangle_center
 
-
+    # cv2.imshow(
+    #     "My Face Detection Project", array
+    # )  # display the processed frame in a window named "My Face Detection Project"
 def center_normalize(center, x_max, y_max):
     center_norm = []
     center_norm.append((center[0] / x_max) - 0.5)
@@ -73,23 +73,25 @@ def move_camera(input):
         print("out of frame")
     return move
 
+if __name__ == '__main__':
+    ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+    ser.reset_input_buffer()
 
 while True:
-    result, video_frame = video_capture.read()  # read frames from the video
-    if result is False:
+    array = picam2.capture_array("main")
+    array = cv2.cvtColor(array,cv2.COLOR_RGB2BGR)
+    if array is False:
         break  # terminate the loop if the frame is not read successfully
-    video_frame = resize_frame(
-        video_frame, frame_width, frame_height
-    )  # Resize the frame
+    array = resize_frame(array,frame_width,frame_height)
     faces, center = detect_bounding_box(
-        video_frame
+        array
     )  # apply the function we created to the video frame
     center = center_normalize(center, frame_width, frame_height)
     move_command = move_camera(center)
     print(move_command)
-    cv2.imshow(
-        "My Face Detection Project", video_frame
-    )  # display the processed frame in a window named "My Face Detection Project"
-
+    if ser.in_waiting > 0:
+    # cv2.imshow(
+    #     "My Face Detection Project", array
+    # )  # display the processed frame in a window named "My Face Detection Project"
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
