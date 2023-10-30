@@ -7,8 +7,8 @@ face_classifier = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 picam2 = Picamera2()
 picam2.start()
 
-frame_width = 1200
-frame_height = 800
+frame_width = 600
+frame_height = 400
 
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 ser.reset_input_buffer()
@@ -53,9 +53,9 @@ def detect_bounding_box(vid):
         rectangle_center = (0, 0)
     return closest_face, rectangle_center
 
-    # cv2.imshow(
-    #     "My Face Detection Project", array
-    # )  # display the processed frame in a window named "My Face Detection Project"
+    cv2.imshow(
+         "My Face Detection Project", array
+    )  # display the processed frame in a window named "My Face Detection Project"
 def center_normalize(center, x_max, y_max):
     center_norm = []
     center_norm.append((center[0] / x_max) - 0.5)
@@ -66,9 +66,11 @@ def center_normalize(center, x_max, y_max):
 def move_camera(input):
     # return how far center of rectangle is from the middle of the screen
     # TODO: send this number to arduino over serial
-    threshold = frame_width / 2
-    move = input[0] - threshold
-    # if input[0] > threshold:
+    frame_center = frame_width / 2
+    move = input[0] - frame_center
+    threshold = 50
+    if abs(move) < threshold:
+        move = 0
     #     print("move left")
     # elif input[0] < threshold and input[0] > 0:
     #     print("move right")
@@ -93,8 +95,8 @@ while True:
     line = ser.readline().decode('utf-8').rstrip()
     print(f"from arduino: {line}")
 
-    # cv2.imshow(
-    #     "My Face Detection Project", array
-    # )  # display the processed frame in a window named "My Face Detection Project"
+    cv2.imshow(
+        "My Face Detection Project", array
+    )  # display the processed frame in a window named "My Face Detection Project"
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
