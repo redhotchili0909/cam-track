@@ -1,26 +1,25 @@
 # pylint: disable-all
-# Script for running the Raspberry Pi 4 Camera and Arduino Serial Communication
+# Script for testing without Raspberry Pi 4 Camera and Arduino
 import cv2
 import numpy as np
-import serial
-from picamera2 import Picamera2, Preview
-
-# Load Cascade Classifier Files
-face_classifier = cv2.CascadeClassifier("models/haarcascade_frontalface_default.xml")
-body_classifier = cv2.CascadeClassifier("models/haarcascade_fullbody.xml")
-upper_classifier = cv2.CascadeClassifier("models/haarcascade_upperbody.xml")
 
 # Start Capturing Video
-picam2 = Picamera2()
-picam2.start()
+video_capture = cv2.VideoCapture(0)
+
+# Load Cascade Classifier Files
+face_classifier = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
+body_classifier = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_fullbody.xml"
+)
+upper_classifier = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_upperbody.xml"
+)
 
 # Define the width & height of the video frame
 frame_width = 600
 frame_height = 400
-
-# Connect to Ardunio Serial Port
-ser = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
-ser.reset_input_buffer()
 
 
 class ObjectDetect:
@@ -139,8 +138,8 @@ def move_camera(input):
 
 while True:
     # Read data from video capture
-    frame = picam2.capture_array("main")
-    if frame is False:
+    result, frame = video_capture.read()
+    if result is False:
         break
     # Change color and size of frame
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -158,11 +157,9 @@ while True:
     move_command = str(move_camera(center))
     move_command = move_command + "\n"
     print(f"from pi: {move_command}")
-    ser.write(move_command.encode("utf-8"))
-    line = ser.readline().decode("utf-8").rstrip()
-    print(f"from arduino: {line}")
 
-    # Make sure to comment when running the script without display output
+    #Make sure to comment when running the script without display output
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     cv2.imshow("My Face Detection Project", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
