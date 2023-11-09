@@ -21,10 +21,14 @@ while cap.isOpened():
             if model.names[int(c)] == "person":
                 box_coord = torch.Tensor.cpu(box_coord)
                 box_coord = torch.Tensor.numpy(box_coord)
-                print(box_coord)
+                print(box_coord[0])
+
                 
 
     annotated_frame = annotator.result()
+    center_x = (box_coord[0] + box_coord[2])/2
+    center_y = (box_coord[1] + box_coord[3])/2
+    annotated_frame = cv2.circle(annotated_frame, (int(center_x), int(center_y)), radius=0, color=(0, 0, 255), thickness=10 )
     cv2.imshow("YOLO", annotated_frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
