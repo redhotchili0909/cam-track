@@ -1,60 +1,66 @@
-#include <Adafruit_MotorShield.h>
-Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_StepperMotor *horMotor = AFMS.getStepper(200, 2);
+const int stepXPin = 2; //X.STEP
+const int dirXPin = 5; // X.DIR
 
-String horInput;
-int horMovement = 0;
-int hPos = 0;
+String xInput;
+int xMovement = 0;
+int xPos = 0;
 
 int fastThreshold = 150;
-int fastMovement = 100;
-int slowMovement = fastMovement / 2;
+int fastMovementDelay = 1000;
+int slowMovementDelay = fastMovementDelay / 2;
+
+const int stepsPerRev = 200;
+int pulseWidthMicros = 100;  // microseconds
+int millisBtwnSteps = slowMovementDelay;
 
 void setup() {
   Serial.begin(9600);
-  horMotor->setSpeed(10); //10 rpm
+  pinMode(stepXPin, OUTPUT);
+  pinMode(dirXPin, OUTPUT);
 }
 
 void loop() {
   if (Serial.available() > 0) {
-    horInput = Serial.readStringUntil('\n');
-    horMovement = horInput.toInt();
-    updatePosition(horMovement);
+    // read x input from pi
+    xInput = Serial.readStringUntil('\n');
+    // convert to integer
+    xMovement = xInput.toInt();
+
+    if (xMovement != 0) {
+      // if xMovement isn't 0, move stepper
+      updatePosition(xMovement);
+      for (int i = 0; i < stepsPerRev; i++) {
+        digitalWrite(stepPin, HIGH);
+        delayMicroseconds(pulseWidthMicros);
+        digitalWrite(stepPin, LOW);
+        delayMicroseconds(millisBtwnSteps);
+      }
+    }
   }
 }
 
-void updatePosition(int horMovement) {
+void updatePosition(int xMovement) {
   /*
     Updates horizontal position of the stepper motor based
     on the horizontal input.
 
     Arguments:
-      horMovement: integer reporting the distance (in pixels)
+      xMovement: integer reporting the distance (in pixels)
       of the center of the face from the center of the camera frame
   */
-  if (horMovement == 0) {
-    Serial.println("0");
-    return;
-  }
 
-  if (abs(horMovement) > fastThreshold) {
-    if (horMovement < 0) {
-      horMotor->step(fastMovement, BACKWARD, SINGLE);
-      Serial.println(-fastMovement);
-    }
-    else {
-      horMotor->step(fastMovement, FORWARD, SINGLE);
-      Serial.println(fastMovement);
-    }
+  if (xMovement < 0) {
+    // move left; go clockwise
+    digitalWrite(dirPin, HIGH);
   }
   else {
-    if (horMovement < 0) {
-      horMotor->step(slowMovement, BACKWARD, SINGLE);
-      Serial.println(-slowMovement);
-    }
-    else {
-      horMotor->step(slowMovement, FORWARD, SINGLE);
-      Serial.println(slowMovement);
-    }
+    digitalWrite(dirPin, LOW);
+  }
+
+  if (abs(xMovement) > fastThreshold) {
+    millisBtwnSteps = fastMovementDelay;
+  }
+  else {
+    millisBtwnSteps = slowMovementDelay;
   }
 }
