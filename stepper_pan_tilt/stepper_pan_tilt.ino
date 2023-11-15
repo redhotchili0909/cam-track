@@ -7,13 +7,14 @@ String inputDist;
 int xDist = 0;
 int yDist = 0;
 
-int fastThreshold = 150;
-int fastMovementDelay = 1000;
+const int fastThreshold = 200;
+int fastMovementDelay = 500;
 int slowMovementDelay = fastMovementDelay * 2;
 int millisBtwnSteps = slowMovementDelay;
-int steps = 0;
+int stepsPerRound = 0;
 int xSteps = 0;
 int ySteps = 0;
+int stepDividend = 4;
 
 void setup() {
   Serial.begin(9600);
@@ -32,13 +33,19 @@ void loop() {
     updateXMovement(xDist);
     updateYMovement(yDist);
 
-    steps = max(xSteps, ySteps);
+    // steps for each loop
+    stepsPerRound = max(xSteps, ySteps);
 
-    for (int i = 0; i < steps; i++) {
+    for (int i = 0; i < stepsPerRound; i++) {
+      // each motor goes high for some millisBtwnSteps,
+      // goes low after so it makes one step at a time
+      // for stepsPerRound
       if (i < xSteps) {
+        // if x took xSteps already, don't set high again
         digitalWrite(X_STEP_PIN, HIGH);
       }
       if (i < ySteps) {
+        // if y took ySteps already, don't set high again
         digitalWrite(Y_STEP_PIN, HIGH);
       }
       delayMicroseconds(millisBtwnSteps);
@@ -51,7 +58,7 @@ void loop() {
 
 void parseDistInput(String inputDist) {
   /*
-    Parses string distance input from Serial Monitor into x and y distance.
+    Parses string distance input from Serial Monitor into x and y distances.
     Argument: 
       inputDist: String input from Raspberry Pi relating how far
       the current x and y coordinates are from the center of the frame
@@ -73,8 +80,8 @@ void updateXMovement(int xDist) {
       xDist: integer reporting the distance (in pixels) of the
       center of the subject from the center of the camera frame
   */
-
-  xSteps = abs(xDist);
+  
+  xSteps = abs(xDist) / stepDividend;
 
   if (xDist < 0) {
     // move left; go clockwise
@@ -103,7 +110,7 @@ void updateYMovement(int yDist) {
       center of the subject from the center of the camera frame
   */
 
-  ySteps = abs(yDist);
+  ySteps = abs(yDist) / stepDividend;
 
   if (yDist < 0) {
     // move down; go clockwise
