@@ -1,23 +1,19 @@
 const int X_STEP_PIN = 2; //X.STEP
 const int X_DIR_PIN = 5; // X.DIR
-const int Y_STEP_PIN = 3; //X.STEP
-const int Y_DIR_PIN = 6; // X.DIR
+const int Y_STEP_PIN = 3; //Y.STEP
+const int Y_DIR_PIN = 6; // Y.DIR
 
-String xInput;
-int xMovement = 0;
-int xPos = 0;
-
-String yInput;
-int yMovement = 0;
-int yPos = 0;
+String inputDist;
+int xDist = 0;
+int yDist = 0;
 
 int fastThreshold = 150;
 int fastMovementDelay = 1000;
-int slowMovementDelay = fastMovementDelay / 2;
-
-const int stepsPerRev = 200;
-// int pulseWidthMicros = 100;  // microseconds
+int slowMovementDelay = fastMovementDelay * 2;
 int millisBtwnSteps = slowMovementDelay;
+int steps = 0;
+int xSteps = 0;
+int ySteps = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -30,41 +26,57 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     // read x input from pi
-    xInput = Serial.readStringUntil('\n');
-    // convert to integer
-    xMovement = xInput.toInt();
-    yMovement = xInput.toInt();
+    inputDist = Serial.readStringUntil('\n');
+    parseDistInput(inputDist);
+    
+    updateXMovement(xDist);
+    updateYMovement(yDist);
 
-    if (xMovement != 0 | yMovement != 0) {
-      // if xMovement isn't 0, move stepper
-      updateXPosition(xMovement);
-      updateYPosition(yMovement);
-      for (int i = 0; i < stepsPerRev; i++) {
+    steps = max(xSteps, ySteps);
+
+    for (int i = 0; i < steps; i++) {
+      if (i < xSteps) {
         digitalWrite(X_STEP_PIN, HIGH);
-        digitalWrite(Y_STEP_PIN, HIGH);
-        delayMicroseconds(millisBtwnSteps);
-        digitalWrite(X_STEP_PIN, LOW);
-        digitalWrite(Y_STEP_PIN, LOW);
-        delayMicroseconds(millisBtwnSteps);
       }
+      if (i < ySteps) {
+        digitalWrite(Y_STEP_PIN, HIGH);
+      }
+      delayMicroseconds(millisBtwnSteps);
+      digitalWrite(X_STEP_PIN, LOW);
+      digitalWrite(Y_STEP_PIN, LOW);
+      delayMicroseconds(millisBtwnSteps);
     }
   }
 }
 
-void updateXPosition(int xMovement) {
+void parseDistInput(String inputDist) {
   /*
-    Updates horizontal position of the stepper motor based
-    on the horizontal input.
+    Parses string distance input from Serial Monitor into x and y distance.
+    Argument: 
+      inputDist: String input from Raspberry Pi relating how far
+      the current x and y coordinates are from the center of the frame
+      in the format: 'x,y'
+  */
+  String xDistInput = inputDist.substring(0, inputDist.indexOf(","));
+  String yDistInput = inputDist.substring(inputDist.indexOf(",") + 1, inputDist.length());
+  xDist = xDistInput.toInt();
+  yDist = yDistInput.toInt();
+}
+
+void updateXMovement(int xDist) {
+  /*
+    Updates direction, speed, and number of steps to take 
+    for the horizontal stepper motor based on the horizontal
+    distance from the subject.
 
     Arguments:
-      xMovement: integer reporting the distance (in pixels)
-      of the center of the face from the center of the camera frame
+      xDist: integer reporting the distance (in pixels) of the
+      center of the subject from the center of the camera frame
   */
-  if (xMovement == 0) {
-    return;
-  }
 
-  if (xMovement < 0) {
+  xSteps = abs(xDist);
+
+  if (xDist < 0) {
     // move left; go clockwise
     digitalWrite(X_DIR_PIN, HIGH);
   }
@@ -72,7 +84,7 @@ void updateXPosition(int xMovement) {
     digitalWrite(X_DIR_PIN, LOW);
   }
 
-  if (abs(xMovement) > fastThreshold) {
+  if (abs(xDist) > fastThreshold) {
     millisBtwnSteps = fastMovementDelay;
   }
   else {
@@ -80,29 +92,28 @@ void updateXPosition(int xMovement) {
   }
 }
 
-void updateYPosition(int yMovement) {
+void updateYMovement(int yDist) {
   /*
-    Updates vertical position of the stepper motor based
-    on the vertical input.
+    Updates direction, speed, and number of steps to take 
+    for the vertical stepper motor based on the vertical
+    distance from the subject.
 
     Arguments:
-      yMovement: integer reporting the distance (in pixels)
-      of the center of the face from the center of the camera frame
+      yDist: integer reporting the distance (in pixels) of the
+      center of the subject from the center of the camera frame
   */
 
-  if (yMovement == 0) {
-    return;
-  }
+  ySteps = abs(yDist);
 
-  if (yMovement < 0) {
-    // move left; go clockwise
+  if (yDist < 0) {
+    // move down; go clockwise
     digitalWrite(Y_DIR_PIN, HIGH);
   }
   else {
     digitalWrite(Y_DIR_PIN, LOW);
   }
 
-  if (abs(yMovement) > fastThreshold) {
+  if (abs(yDist) > fastThreshold) {
     millisBtwnSteps = fastMovementDelay;
   }
   else {
