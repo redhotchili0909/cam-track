@@ -14,7 +14,7 @@ int millisBtwnSteps = slowMovementDelay;
 int stepsPerRound = 0;
 int xSteps = 0;
 int ySteps = 0;
-int stepDividend = 4;
+int stepDividend = 10;
 
 void setup() {
   Serial.begin(9600);
@@ -114,10 +114,10 @@ void updateYMovement(int yDist) {
 
   if (yDist < 0) {
     // move down; go clockwise
-    digitalWrite(Y_DIR_PIN, HIGH);
+    digitalWrite(Y_DIR_PIN, LOW);
   }
   else {
-    digitalWrite(Y_DIR_PIN, LOW);
+    digitalWrite(Y_DIR_PIN, HIGH);
   }
 
   if (abs(yDist) > fastThreshold) {
