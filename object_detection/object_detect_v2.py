@@ -14,8 +14,8 @@ configPath = "models/coco/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
 weightsPath = "models/coco/frozen_inference_graph.pb"
 
 # Connect to Arduino Serial Port
-ser = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
-ser.reset_input_buffer()
+#ser = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+#ser.reset_input_buffer()
 
 #This is some set up values to get good results
 net = cv2.dnn_DetectionModel(weightsPath,configPath)
@@ -34,7 +34,7 @@ def getObjects(img, thres, nms, draw=True, objects=[]):
     if len(classIds) != 0:
         for classId, confidence,box in zip(classIds.flatten(),confs.flatten(),bbox):
             className = classNames[classId - 1]
-            if className == "person": 
+            if className == "person" or className == "backpack": 
                 objectInfo.append([box,className])
                 if (draw):
                     cv2.rectangle(img,box,color=(0,255,0),thickness=2)
@@ -65,9 +65,9 @@ if __name__ == "__main__":
         y_coord = (box[1]+box[3])/2
         print([x_coord, y_coord])
         coords = [x_coord, y_coord]
-        ser.write(coords.encode("utf-8"))
-        line = ser.readline().decode("utf-8").rstrip()
-        print(f"from arduino: {line}")
+        #ser.write(coords.encode("utf-8"))
+        #line = ser.readline().decode("utf-8").rstrip()
+        #print(f"from arduino: {line}")
 
         #print(objectInfo)
         cv2.imshow("Output",frame)
