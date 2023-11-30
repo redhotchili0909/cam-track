@@ -1,5 +1,5 @@
 import cv2
-
+import numpy as np
 #This is to pull the information about what each object is called
 classNames = []
 classFile = "models/coco/coco.names"
@@ -20,8 +20,8 @@ net.setInputMean((127.5, 127.5, 127.5))
 net.setInputSwapRB(True)
 
 #This is to set up what the drawn box size/colour is and the font/size/colour of the name tag and confidence label   
-def getObjects(img, thres, nms, draw=True, objects=[]):
-    classIds, confs, bbox = net.detect(img,confThreshold=thres,nmsThreshold=nms)
+def getObjects(frame, thres, nms, draw=True, objects=[]):
+    classIds, confs, bbox = net.detect(frame,confThreshold=thres,nmsThreshold=nms)
 #Below has been commented out, if you want to print each sighting of an object to the console you can uncomment below     
 #print(classIds,bbox)
     if len(objects) == 0: objects = classNames
@@ -31,16 +31,15 @@ def getObjects(img, thres, nms, draw=True, objects=[]):
             className = classNames[classId - 1]
             if className == "person" or className == "backpack": 
                 objectInfo.append([box,className])
-                print(box)
                 if (draw):
-                    cv2.rectangle(img,box,color=(0,255,0),thickness=2)
-                    cv2.circle(img,(int((box[0]+box[2])/2), int((box[1]+box[3])/2)), 1, (0,0,255), 1)
-                    cv2.putText(img,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
-                    cv2.putText(img,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
+                    cv2.rectangle(frame,(int(box[0]), int(box[1])),(int(box[0]+box[2]), int(box[1]+box[3])),color=(0,255,0),thickness=2)
+                    cv2.circle(frame,(int(box[0]+box[2]/2), int(box[1]+box[3]/2)), 1, (0,0,255), 5)
+                    cv2.putText(frame,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
+                    cv2.putText(frame,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
     else:
         box = [1000, 1000, 1000, 1000]
     
-    return img,objectInfo,box
+    return frame,objectInfo,box
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
@@ -49,17 +48,17 @@ if __name__ == "__main__":
 frame_count = 0    
 while True:
         ret, frame = cap.read()
-#Below provides a huge amount of controll. the 0.45 number is the threshold number, the 0.2 number is the nms number)
-        if frame_count <= 100:
-            result, objectInfo, box = getObjects(frame,0.6,0.2)
-        elif frame_count == 101:
-            track_result = tracker.init(frame, box)
-            box_width = box[2] - box[0]
-            box_height = box[3] - box[1]
-            
+#Below provides a huge amount of control. the 0.45 number is the threshold number, the 0.2 number is the nms number)
+        if frame_count % 120 == 0:
+            frame, objectInfo, b_box = getObjects(frame,0.6,0.2)
+            print(b_box)
+            box_width = b_box[2] - b_box[0]
+            box_height = b_box[3] - b_box[1]
+        elif frame_count % 120 == 1:
+            track_result = tracker.init(frame, b_box)
         else:
-            track_result, box = tracker.update(frame)
-            cv2.rectangle(frame,(int(box[0]), int(box[1])), (int(box[0]+box_width), int(box[1]+box_height)),color=(0,255,0),thickness=2)
+            track_result, b_box = tracker.update(frame)
+            cv2.rectangle(frame,(int(b_box[0]), int(b_box[1])),(int(b_box[0]+b_box[2]), int(b_box[1]+b_box[3])),color=(0,255,0),thickness=2)
 
         
         #track_result, frame = cap.read()
