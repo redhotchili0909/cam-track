@@ -3,13 +3,21 @@
 Servo driving_motor;
 const int driving_motor_pin = 9;
 
+String input_dist;
+int dist_away = 0;
+
 void setup() {
+  Serial.begin(9600);
   driving_motor.attach(driving_motor_pin);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  set_motor_power(driving_motor, 100);
+  if (Serial.available() > 0) {
+    input_dist = Serial.readStringUntil('\n');
+    dist_away = input_dist.toInt();
+
+    set_motor_power(driving_motor, dist_away);
+  }
 }
 
 void set_motor_power (Servo motor, int power) {
