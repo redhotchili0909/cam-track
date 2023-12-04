@@ -33,19 +33,21 @@ def getObjects(frame, thres, nms, objects=[]):
     classIds, confs, bbox = net.detect(frame,confThreshold=thres,nmsThreshold=nms)
     if len(objects) == 0: objects = classNames
     objectInfo =[]
+    person_box = []
     if len(classIds) != 0:
         for classId, confidence,box in zip(classIds.flatten(),confs.flatten(),bbox):
             className = classNames[classId - 1]
             if className == "person" or className == "backpack": 
                 objectInfo.append([box,className])
+                person_box.append(box)
                 cv2.rectangle(frame,(int(box[0]), int(box[1])),(int(box[0]+box[2]), int(box[1]+box[3])),color=(0,255,0),thickness=2)
                 cv2.circle(frame,(int(box[0]+box[2]/2), int(box[1]+box[3]/2)), 1, (0,0,255), 5)
                 cv2.putText(frame,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
                 cv2.putText(frame,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
     else:
-        box = [1000, 1000, 1000, 1000]
+        box = [200, 150, 200, 200]
     
-    return frame,objectInfo,box
+    return frame,objectInfo,person_box
 
 # Initialize streaming from raspberry pi camera
 if __name__ == "__main__":
@@ -58,9 +60,10 @@ frame_count = 0
 while True:
     frame = picam.capture_array("main")
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-# tThe first number is the threshold number, the second number is the nms number)
+# The first number is the threshold number, the second number is the nms number
     if frame_count % 240 == 0:
         frame, objectInfo, b_box = getObjects(frame,0.6,0.2)
+        b_box = b_box[0]
         tracker = cv2.legacy.TrackerMOSSE_create()
         track_result = tracker.init(frame, b_box)
     else:
