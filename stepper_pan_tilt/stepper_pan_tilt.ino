@@ -14,7 +14,13 @@ int millisBtwnSteps = slowMovementDelay;
 int stepsPerRound = 0;
 int xSteps = 0;
 int ySteps = 0;
-int stepDividend = 10;
+
+int xStepDividend = 4;
+int yStepDividend = 7;
+
+unsigned long start_millis;
+unsigned long current_millis;
+unsigned long stop_period = 4000;
 
 void setup() {
   Serial.begin(9600);
@@ -25,9 +31,12 @@ void setup() {
 }
 
 void loop() {
+  start_millis = millis();
+
   if (Serial.available() > 0) {
     // read x input from pi
     inputDist = Serial.readStringUntil('\n');
+    // Serial.println(inputDist);
     parseDistInput(inputDist);
     
     updateXMovement(xDist);
@@ -54,6 +63,12 @@ void loop() {
       delayMicroseconds(millisBtwnSteps);
     }
   }
+
+  current_millis = millis();
+  if (current_millis - start_millis > stop_period) {
+    // stop stepper
+  }
+
 }
 
 void parseDistInput(String inputDist) {
@@ -81,7 +96,7 @@ void updateXMovement(int xDist) {
       center of the subject from the center of the camera frame
   */
   
-  xSteps = abs(xDist) / stepDividend;
+  xSteps = abs(xDist) / xStepDividend;
 
   if (xDist < 0) {
     // move left; go clockwise
@@ -110,7 +125,7 @@ void updateYMovement(int yDist) {
       center of the subject from the center of the camera frame
   */
 
-  ySteps = abs(yDist) / stepDividend;
+  ySteps = abs(yDist) / yStepDividend;
 
   if (yDist < 0) {
     // move down; go clockwise
