@@ -5,19 +5,19 @@ import numpy
 import serial
 # This is to pull the information about what each object is called
 classNames = []
-classFile = "cam-track/object_detection/models/coco/coco.names"
+classFile = "/home/cam-track/Documents/cam-track/object_detection/models/coco/coco.names"
 with open(classFile,"rt") as f:
     classNames = f.read().rstrip("\n").split("\n")
 
 # This is to pull the information about what each object should look like
-configPath = "cam-track/object_detection/models/coco/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
-weightsPath = "cam-track/object_detection/models/coco/frozen_inference_graph.pb"
+configPath = "/home/cam-track/Documents/cam-track/object_detection/models/coco/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
+weightsPath = "/home/cam-track/Documents/cam-track/object_detection/models/coco/frozen_inference_graph.pb"
 
 
 # Connect to Arduino Serial Port
-arduino_connected = False
+arduino_connected = True
 if arduino_connected is True:
-    ser = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+    ser = serial.Serial("/dev/ttyACM0", 9600, timeout=0.02)
     ser.reset_input_buffer()
 
 
@@ -45,7 +45,8 @@ def getObjects(frame, thres, nms, objects=[]):
                 cv2.putText(frame,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
                 cv2.putText(frame,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
     else:
-        box = [200, 150, 200, 200]
+        box = [0, 0, 0, 0]
+        # person_box.append(box)
     
     return frame,objectInfo,person_box
 
@@ -63,15 +64,18 @@ while True:
 # The first number is the threshold number, the second number is the nms number
     if frame_count % 240 == 0:
         frame, objectInfo, b_box = getObjects(frame,0.6,0.2)
-        b_box = b_box[0]
-        tracker = cv2.legacy.TrackerMOSSE_create()
-        track_result = tracker.init(frame, b_box)
+        if not b_box:
+            continue
+        if b_box:
+            b_box = b_box[0]
+            tracker = cv2.legacy.TrackerMOSSE_create()
+            track_result = tracker.init(frame, b_box)
     else:
         track_result, b_box = tracker.update(frame)
         cv2.rectangle(frame,(int(b_box[0]), int(b_box[1])),(int(b_box[0]+b_box[2]), int(b_box[1]+b_box[3])),color=(0,255,0),thickness=2)
         
     frame_count += 1
-    if frame_count >= 341:
+    if frame_count >= 31:
         frame_count = 0
 
     b_box = list(b_box)
@@ -80,13 +84,12 @@ while True:
     b_box[1] -= frame_height/2
     x_coord = (b_box[0]+b_box[2]/2)
     y_coord = (b_box[1]+b_box[3]/2)
-    coords = [x_coord, y_coord]
-    print(coords)
-    #ser.write(coords.encode("utf-8"))
-    #line = ser.readline().decode("utf-8").rstrip()
-    #print(f"from arduino: {line}")
+    coords = f"{x_coord},{y_coord}"
+    ser.write(coords.encode("utf-8"))
+    line = ser.readline().decode("utf-8").rstrip()
+    # print(f"from arduino: {line}")
 
-    #print(objectInfo)
+    # print(objectInfo)
     cv2.imshow("Output",frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
