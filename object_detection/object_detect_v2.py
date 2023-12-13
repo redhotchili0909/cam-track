@@ -17,7 +17,7 @@ weightsPath = "/home/cam-track/Documents/cam-track/object_detection/models/coco/
 # Connect to Arduino Serial Port
 arduino_connected = True
 if arduino_connected is True:
-    ser = serial.Serial("/dev/ttyACM0", 9600, timeout=0.02)
+    ser = serial.Serial("/dev/ttyACM0", 9600, timeout=.05)
     ser.reset_input_buffer()
 
 
@@ -45,7 +45,7 @@ def getObjects(frame, thres, nms, objects=[]):
                 cv2.putText(frame,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
                 cv2.putText(frame,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
     else:
-        box = [0, 0, 0, 0]
+        box = False
         # person_box.append(box)
     
     return frame,objectInfo,person_box
@@ -62,9 +62,9 @@ while True:
     frame = picam.capture_array("main")
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 # The first number is the threshold number, the second number is the nms number
-    if frame_count % 240 == 0:
+    if frame_count % 480 == 0:
         frame, objectInfo, b_box = getObjects(frame,0.6,0.2)
-        if not b_box:
+        if b_box is False:
             continue
         if b_box:
             b_box = b_box[0]
@@ -85,9 +85,10 @@ while True:
     x_coord = (b_box[0]+b_box[2]/2)
     y_coord = (b_box[1]+b_box[3]/2)
     coords = f"{x_coord},{y_coord}"
+    #print(coords)
     ser.write(coords.encode("utf-8"))
     line = ser.readline().decode("utf-8").rstrip()
-    # print(f"from arduino: {line}")
+    #print(f"from arduino: {line}")
 
     # print(objectInfo)
     cv2.imshow("Output",frame)
