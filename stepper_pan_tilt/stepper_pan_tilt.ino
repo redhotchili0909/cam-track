@@ -15,8 +15,8 @@ int stepsPerRound = 0;
 int xSteps = 0;
 int ySteps = 0;
 
-int xStepDividend = 4;
-int yStepDividend = 7;
+int xStepDividend = 10;
+int yStepDividend = 10;
 
 unsigned long start_millis;
 unsigned long current_millis;
@@ -24,6 +24,7 @@ unsigned long stop_period = 4000;
 
 void setup() {
   Serial.begin(9600);
+  Serial.setTimeout(50);
   pinMode(X_STEP_PIN, OUTPUT);
   pinMode(X_DIR_PIN, OUTPUT);
   pinMode(Y_STEP_PIN, OUTPUT);
@@ -38,6 +39,7 @@ void loop() {
     inputDist = Serial.readStringUntil('\n');
     // Serial.println(inputDist);
     parseDistInput(inputDist);
+    Serial.println(inputDist);
     
     updateXMovement(xDist);
     updateYMovement(yDist);
@@ -63,11 +65,18 @@ void loop() {
       delayMicroseconds(millisBtwnSteps);
     }
   }
+  // Serial.print(xSteps);
+  // Serial.print(",");
+  // Serial.println(ySteps);
 
-  current_millis = millis();
-  if (current_millis - start_millis > stop_period) {
-    // stop stepper
-  }
+  // ready handshake
+  // Serial.println(1);
+
+  // current_millis = millis();
+  // if (current_millis - start_millis > stop_period) {
+  //   // stop stepper
+
+  // }
 
 }
 
