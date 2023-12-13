@@ -14,6 +14,7 @@ int millisBtwnSteps = slowMovementDelay;
 int stepsPerRound = 0;
 int xSteps = 0;
 int ySteps = 0;
+int yPos = 0;
 
 int xStepDividend = 10;
 int yStepDividend = 10;
@@ -111,6 +112,12 @@ void updateYMovement(int yDist) {
       yDist: integer reporting the distance (in pixels) of the
       center of the subject from the center of the camera frame
   */
+
+  // check if total vertical travel went too high
+  yPos += (yDist / yStepDividend);
+  if abs(yPos) >= 250:
+    yPos = 250;
+    yDist = 0;
 
   ySteps = abs(yDist) / yStepDividend;
 
