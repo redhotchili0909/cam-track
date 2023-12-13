@@ -20,7 +20,7 @@ int yStepDividend = 10;
 
 unsigned long start_millis;
 unsigned long current_millis;
-unsigned long stop_period = 4000;
+unsigned long run_between_period = 500;
 
 void setup() {
   Serial.begin(9600);
@@ -32,9 +32,9 @@ void setup() {
 }
 
 void loop() {
-  start_millis = millis();
 
   if (Serial.available() > 0) {
+    start_millis = millis();
     // read x input from pi
     inputDist = Serial.readStringUntil('\n');
     // Serial.println(inputDist);
@@ -47,36 +47,14 @@ void loop() {
     // steps for each loop
     stepsPerRound = max(xSteps, ySteps);
 
-    for (int i = 0; i < stepsPerRound; i++) {
-      // each motor goes high for some millisBtwnSteps,
-      // goes low after so it makes one step at a time
-      // for stepsPerRound
-      if (i < xSteps) {
-        // if x took xSteps already, don't set high again
-        digitalWrite(X_STEP_PIN, HIGH);
-      }
-      if (i < ySteps) {
-        // if y took ySteps already, don't set high again
-        digitalWrite(Y_STEP_PIN, HIGH);
-      }
-      delayMicroseconds(millisBtwnSteps);
-      digitalWrite(X_STEP_PIN, LOW);
-      digitalWrite(Y_STEP_PIN, LOW);
-      delayMicroseconds(millisBtwnSteps);
-    }
+    runSteppers(stepsPerRound, xSteps, ySteps);
   }
-  // Serial.print(xSteps);
-  // Serial.print(",");
-  // Serial.println(ySteps);
 
-  // ready handshake
-  // Serial.println(1);
-
-  // current_millis = millis();
-  // if (current_millis - start_millis > stop_period) {
-  //   // stop stepper
-
-  // }
+  current_millis = millis();
+  if (current_millis - start_millis < run_between_period) {
+    // keep the steppers running if it hasn't been too long since last serial command
+    runSteppers(stepsPerRound, xSteps, ySteps);
+  }
 
 }
 
@@ -150,4 +128,42 @@ void updateYMovement(int yDist) {
   else {
     millisBtwnSteps = slowMovementDelay;
   }
+}
+
+void runSteppers(stepsPerRound, xSteps, ySteps) {
+  /*
+    Updates direction, speed, and number of steps to take 
+    for the vertical stepper motor based on the vertical
+    distance from the subject.
+
+    Arguments:
+      stepsPerRound: integer reporting the larger number of steps 
+      between x and y stepper motors in the current round
+      xSteps: integer number of steps x motor takes this round
+      ySteps: integer numer of steps y motor takes this round
+  */
+
+  for (int i = 0; i < stepsPerRound; i++) {
+    // each motor goes high for some millisBtwnSteps,
+    // goes low after so it makes one step at a time
+    // for stepsPerRound
+    if (Serial.available() > 0) {
+      // if serial message sent during this loop, break out
+      return;
+    }
+    
+    if (i < xSteps) {
+      // if x took xSteps already, don't set high again
+      digitalWrite(X_STEP_PIN, HIGH);
+    }
+    if (i < ySteps) {
+      // if y took ySteps already, don't set high again
+      digitalWrite(Y_STEP_PIN, HIGH);
+    }
+    delayMicroseconds(millisBtwnSteps);
+    digitalWrite(X_STEP_PIN, LOW);
+    digitalWrite(Y_STEP_PIN, LOW);
+    delayMicroseconds(millisBtwnSteps);
+  }
+
 }
