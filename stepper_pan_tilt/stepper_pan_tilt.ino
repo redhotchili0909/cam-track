@@ -34,7 +34,7 @@ void setup() {
 void loop() {
 
   if (Serial.available() > 0) {
-    start_millis = millis();
+    // start_millis = millis();
     // read x input from pi
     inputDist = Serial.readStringUntil('\n');
     // Serial.println(inputDist);
@@ -50,11 +50,11 @@ void loop() {
     runSteppers(stepsPerRound, xSteps, ySteps);
   }
 
-  current_millis = millis();
-  if (current_millis - start_millis < run_between_period) {
-    // keep the steppers running if it hasn't been too long since last serial command
-    runSteppers(stepsPerRound, xSteps, ySteps);
-  }
+  // current_millis = millis();
+  // if (current_millis - start_millis < run_between_period) {
+  //   // keep the steppers running if it hasn't been too long since last serial command
+  //   runSteppers(stepsPerRound, xSteps, ySteps);
+  // }
 
 }
 
@@ -130,7 +130,7 @@ void updateYMovement(int yDist) {
   }
 }
 
-void runSteppers(stepsPerRound, xSteps, ySteps) {
+void runSteppers(int stepsPerRound, int xSteps, int ySteps) {
   /*
     Updates direction, speed, and number of steps to take 
     for the vertical stepper motor based on the vertical
@@ -147,10 +147,10 @@ void runSteppers(stepsPerRound, xSteps, ySteps) {
     // each motor goes high for some millisBtwnSteps,
     // goes low after so it makes one step at a time
     // for stepsPerRound
-    if (Serial.available() > 0) {
-      // if serial message sent during this loop, break out
-      return;
-    }
+    // if (Serial.available() > 0) {
+    //   // if serial message sent during this loop, break out
+    //   break;
+    // }
     
     if (i < xSteps) {
       // if x took xSteps already, don't set high again
