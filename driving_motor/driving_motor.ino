@@ -19,7 +19,7 @@ void loop() {
   //   input_dist = Serial.readStringUntil('\n');
   //   dist_away = input_dist.toInt();
   digitalWrite(LED_BUILTIN, HIGH);
-  set_esc_power(driving_motor, 15);
+  set_esc_power(driving_motor, 35);
 
 }
 
