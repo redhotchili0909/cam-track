@@ -42,7 +42,7 @@ def getObjects(frame, thres, nms, objects=[]):
     if len(classIds) != 0:
         for classId, confidence,box in zip(classIds.flatten(),confs.flatten(),bbox):
             className = classNames[classId - 1]
-            if className == "person" or className == "backpack": 
+            if className == "person": 
                 objectInfo.append([box,className])
                 person_box.append(box)
                 #Comment out when running without monitor
@@ -51,13 +51,14 @@ def getObjects(frame, thres, nms, objects=[]):
                 cv2.putText(frame,classNames[classId-1].upper(),(box[0]+50,box[1]+50), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
                 cv2.putText(frame,str(round(confidence*100,2)),(box[0],box[1]), cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
     else:
-        box = [0, 0, 2, 2]
-        person_box.append(box)
+        box = False
+        person_box = box
     return frame,objectInfo,person_box
 
 # Initialize streaming from raspberry pi camera
 if __name__ == "__main__":
     picam = Picamera2()
+    picam.set_controls({'ExposureTime': 1})
     picam.start()
     
 # Frame counter to determine when to re-detect
@@ -71,8 +72,9 @@ while True:
         frame, objectInfo, b_box = getObjects(frame, 0.6, 0.2)
         if b_box is False:
             continue
-        if b_box:
+        elif len(b_box) > 0:
             b_box = b_box[0]
+            print(b_box)
             tracker = cv2.legacy.TrackerMOSSE_create()
             track_result = tracker.init(frame, b_box)
     else:
