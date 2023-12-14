@@ -58,7 +58,7 @@ def getObjects(frame, thres, nms, objects=[]):
 # Initialize streaming from raspberry pi camera
 if __name__ == "__main__":
     picam = Picamera2()
-    picam.set_controls({'ExposureTime': 1})
+    picam.set_controls({'ExposureTime': .1})
     picam.start()
     
 # Frame counter to determine when to re-detect
@@ -74,7 +74,7 @@ while True:
             continue
         elif len(b_box) > 0:
             b_box = b_box[0]
-            print(b_box)
+            #print(b_box)
             tracker = cv2.legacy.TrackerMOSSE_create()
             track_result = tracker.init(frame, b_box)
     else:
@@ -108,4 +108,4 @@ while True:
     #Comment out when running without monitor
     cv2.imshow("Output",frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+       break
