@@ -16,7 +16,7 @@ int xSteps = 0;
 int ySteps = 0;
 int yPos = 0;
 
-int xStepDividend = 6;
+int xStepDividend = 3;
 int yStepDividend = 10;
 
 void setup() {
